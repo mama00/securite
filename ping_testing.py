@@ -7,17 +7,31 @@
 # ---------------------------------------- 
 
 # Ecrire un programme en python qui permet d'effectuer un ping
-# Contraintes: Port 6332  | use Idle | use socket     
+# Contraintes: Port 6332  | use Idle | use socket | architecture Client/Server  
 
 # __________________________________________________________
+   #socket.SOCK_STREAM           The default protocol that’s used is TCP (Is reliable; Has in-order data delivery)
 
+#importation des packages utiles a programme
 import socket
 from datetime import datetime
+import http.server
+import socketserver
+#fin des importations
+
 IP = input("Enter the IP address: ")
 t1 = datetime.now()
 ttl = 0.025
-PORT = 8080
+PORT = 6332
 socket.setdefaulttimeout(ttl)
+
+# def startServer(PORT):
+#    Handler = http.server.SimpleHTTPRequestHandler
+#    with socketserver.TCPServer(("", PORT), Handler) as httpd:
+#       print("serving at port", PORT)
+      # httpd.serve_forever()
+
+
 
 def scan(addr):
    s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -36,5 +50,6 @@ def ping(addr):
          print ("from {}: ttl={} time={} ms".format(addr,ttl,total))
       else:
           print('Port unreachable')
-         
+
+# startServer(PORT)        
 ping(IP)
