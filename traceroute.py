@@ -1,44 +1,51 @@
-#!/usr/bin/env python3
 
 import socket
+import time
+port = 6332 
+max_hops = 40
 
-def main(dest_name):
+def Traceroute(dest_name):  
     dest_addr = socket.gethostbyname(dest_name)
-    port = 33434
-    max_hops = 30
     icmp = socket.getprotobyname('icmp')
     udp = socket.getprotobyname('udp')
     ttl = 1
     while True:
-        recv_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, icmp)
-        send_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, udp)
-        send_socket.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl)
-        recv_socket.bind(("", port))
-        send_socket.sendto("", (dest_name, port))
-        curr_addr = None
-        curr_name = None
-        try:
-            _, curr_addr = recv_socket.recvfrom(512)
-            curr_addr = curr_addr[0]
-            try:
-                curr_name = socket.gethostbyaddr(curr_addr)[0]
-            except socket.error:
-                curr_name = curr_addr
-        except socket.error:
-            pass
-        finally:
-            send_socket.close()
-            recv_socket.close()
+        receiving_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, icmp) 
+        sending_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, udp) 
 
-        if curr_addr is not None:
-            curr_host = "%s (%s)" % (curr_name, curr_addr)
+        sending_socket.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl) 
+        receiving_socket.bind(("", port)) 
+        sending_socket.sendto("testing", (dest_name, port)) 
+        
+        current_hop = None
+        curr_name = None
+
+        try:
+            data, current_hop = receiving_socket.recvfrom(512) 
+            current_hop = current_hop[0]
+            try:
+                curr_name = socket.gethostbyaddr(current_hop)[0] 
+            except socket.error:
+                curr_name = current_hop
+        except socket.error: 
+            print('timeout error')
+        finally:
+            sending_socket.close() 
+            receiving_socket.close()
+
+        if current_hop is not None: 
+            curr_host = "%s (%s)" % (curr_name, current_hop)
         else:
-            curr_host = "*"
-        print ("%d\t%s" % (ttl, curr_host))
+            curr_host = "*" 
+        print "%d\t%s" % (ttl, curr_host)
 
         ttl += 1
-        if curr_addr == dest_addr or ttl > max_hops:
+
+        if current_hop == dest_addr or ttl > max_hops: 
             break
 
 if __name__ == "__main__":
-    main('google.com')
+    dest_name = raw_input('Enter the destination : ')
+    print('Traceroute to {} ({}) on port : {}, {} hops max'.format(dest_name,socket.gethostbyname(dest_name),port,max_hops))
+    startTime = time.time() 
+    Traceroute(dest_name)
